@@ -1,10 +1,10 @@
-const { Router } = require("express");
+import { Request, Response } from 'express';
+import * as express from 'express'
+import { getUsers } from '../controllers/userController'
+import { verifyToken } from '../middlewares/auth'
 
-const { getUsers, register } = require("../controllers/userController")
+const userRouter = express.Router();
 
-const router = Router();
+userRouter.get("/all", verifyToken, (req: Request, res: Response) => { });
 
-router.get("/all", getUsers);
-router.post("/register", register)
-
-module.exports = router;
+export { userRouter }

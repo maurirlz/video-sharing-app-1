@@ -4,12 +4,13 @@ import * as express from 'express'
 import 'dotenv/config'
 import { userRouter } from './src/routes/user'
 import { authRouter } from './src/routes/auth'
+import * as cors from 'cors'
 
 
 const prisma = new PrismaClient()
-
 const app = express()
 
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 

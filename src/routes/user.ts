@@ -5,6 +5,6 @@ import { verifyToken } from '../middlewares/auth'
 
 const userRouter = express.Router();
 
-userRouter.get("/all", verifyToken, (req: Request, res: Response) => { });
+userRouter.get("/all", verifyToken, getUsers);
 
 export { userRouter }

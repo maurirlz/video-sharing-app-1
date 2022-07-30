@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { verify, hash } from 'argon2'
 import * as express from 'express'
 import * as jwt from 'jsonwebtoken'
+import { resolve } from 'path';
 
 const app = express();
 
@@ -23,16 +24,19 @@ const login = async (req: Request, res: Response) => {
     try {
         if (await verify(user.password, password)) {
             delete user.password;
-            jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '5m' }, (err: Error, token: string) =>
+            jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '30s' }, (err: Error, token: string) => {
                 res.json({
                     token,
+                    user,
                 })
+                return;
+            }
             )
         } else {
             return res.status(500).send({ message: 'wrong password' })
         }
     } catch (err) {
-        res.status(500).send(err.message)
+        return res.status(500).send(err.message)
     }
 
 }
@@ -68,7 +72,12 @@ const register = async (req: Request, res: Response) => {
     }
 }
 
+const authorize = async (req: Request, res: Response) => {
+    return res.status(200).send()
+}
+
 export {
     login,
     register,
+    authorize,
 }

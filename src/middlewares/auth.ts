@@ -14,16 +14,10 @@ function verifyToken(req: Request, res: Response, next: NextFunction) {
 
     jwt.verify(token, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.sendStatus(403);
-        } else {
-            res.json({
-                message: 'something',
-                authData,
-            })
+            return res.status(403).send(err)
         }
+        return next();
     })
-
-    next()
 }
 
 function parseToken(token: string) {
@@ -32,7 +26,6 @@ function parseToken(token: string) {
     }
 
     const [_, parsedToken] = token.split(' ')
-    console.log(parsedToken)
 
     return parsedToken
 }

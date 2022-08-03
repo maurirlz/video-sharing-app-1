@@ -31,6 +31,7 @@ model User {
   email     String   @unique
   name      String?
   password  String
+  pfp       String?
   posts     Post[]
   following Follow[]
 }

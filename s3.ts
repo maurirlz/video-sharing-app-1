@@ -15,17 +15,31 @@ const s3 = new AWS.S3({
 
 //upload to s3
 
-const uploadFile = (file: any) => {
-    const fileStream = fs.createReadStream(file.path)
+
+const uploadFile = (filename: string) => {
+    const fileStream = fs.createReadStream(`uploads/${filename}`)
 
     const uploadParams = {
         Bucket: bucketName,
         Body: fileStream,
-        Key: file.filename,
+        Key: filename,
     }
 
     return s3.upload(uploadParams).promise()
 }
+
+// without resizing
+// const uploadFile = (file: any) => {
+//     const fileStream = fs.createReadStream(file.path)
+
+//     const uploadParams = {
+//         Bucket: bucketName,
+//         Body: fileStream,
+//         Key: file.filename,
+//     }
+
+//     return s3.upload(uploadParams).promise()
+// }
 
 // dl from s3
 const getFileStream = (fileKey: string) => {
@@ -33,8 +47,8 @@ const getFileStream = (fileKey: string) => {
         Key: fileKey,
         Bucket: bucketName
     }
-    
-    return s3.getObject(downloadParams).createReadStream()  
+
+    return s3.getObject(downloadParams).createReadStream()
 }
 
 export {

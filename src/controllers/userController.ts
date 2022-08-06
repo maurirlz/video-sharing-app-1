@@ -10,10 +10,8 @@ import * as sharp from 'sharp'
 const unlinkFile = util.promisify(fs.unlink)
 const prisma = new PrismaClient()
 
-const getUsers = async (req: Request, res: Response) => {
-    const users = await prisma.user.findMany();
-    console.log(users);
-    return res.json(users);
+const createPost = async (req: Request, res: Response) => {
+
 }
 
 const getPfp = async (req: Request, res: Response) => {
@@ -29,7 +27,7 @@ const getPfp = async (req: Request, res: Response) => {
 }
 
 const uploadPfp = async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.id, 10)
+    const userId = parseInt(req.params.id)
     const file = req.file
 
     await sharp(`uploads/${file.filename}`)
@@ -42,7 +40,7 @@ const uploadPfp = async (req: Request, res: Response) => {
         await unlinkFile(`uploads/${file.filename}rs`)
         await unlinkFile(file.path)
 
-        const updatedUser = await prisma.user.update({
+        const user = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -81,7 +79,7 @@ const uploadPfp = async (req: Request, res: Response) => {
 // }
 
 export {
-    getUsers,
     getPfp,
     uploadPfp,
+    createPost
 }

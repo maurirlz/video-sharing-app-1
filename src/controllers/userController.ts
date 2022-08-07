@@ -6,11 +6,58 @@ import { uploadFile, getFileStream } from '/home/juanma/Documents/projects/video
 import * as fs from 'fs'
 import * as util from 'util'
 import * as sharp from 'sharp'
+import { PrismaClientRustPanicError } from '@prisma/client/runtime';
 
 const unlinkFile = util.promisify(fs.unlink)
 const prisma = new PrismaClient()
 
+const getPosts = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id)
+    const posts = await prisma.post.findMany({
+        where: {
+            authorId: userId
+        }
+    })
+    return res.status(200).send(posts)
+}
+
 const createPost = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id)
+    const content = req.body.content
+    const file = req.file
+
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        }
+    })
+
+    if (!user) {
+        return res.status(500).send({ message: 'user not found' })
+    }
+
+    await sharp(`uploads/${file.filename}`)
+        .resize(600, 600)
+        .toFile(`uploads/${file.filename}rs`)
+
+    try {
+        const result = await uploadFile(`${file.filename}rs`)
+
+        await unlinkFile(`uploads/${file.filename}rs`)
+        await unlinkFile(file.path)
+
+        const post = await prisma.post.create({
+            data: {
+                authorId: userId,
+                content: content,
+                img: result.Key
+            }
+        })
+
+        res.status(200).send({ imagePath: `/ postImg / ${result.Key}` })
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
 
 }
 
@@ -80,6 +127,7 @@ const uploadPfp = async (req: Request, res: Response) => {
 
 export {
     getPfp,
+    getPosts,
     uploadPfp,
-    createPost
+    createPost,
 }

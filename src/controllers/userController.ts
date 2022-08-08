@@ -11,14 +11,91 @@ import { PrismaClientRustPanicError } from '@prisma/client/runtime';
 const unlinkFile = util.promisify(fs.unlink)
 const prisma = new PrismaClient()
 
+const getUserInfo = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id)
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        include: {
+            posts: {},
+        }
+    })
+    delete user.password
+    res.status(200).send(user)
+}
+
 const getPosts = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id)
     const posts = await prisma.post.findMany({
         where: {
             authorId: userId
+        },
+        include: {
+            author: {
+                select: {
+                    name: true,
+                    pfp: true,
+                }
+            }
         }
     })
     return res.status(200).send(posts)
+}
+
+const getFollowedUsers = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id)
+    const followedUsers = await prisma.follow.findMany({
+        where: {
+            userId: userId
+        }
+    })
+
+    // followedUsers.map(u => (
+    //     delete u.id,
+    //     delete u.userId
+    // ))
+
+    return res.status(200).send(followedUsers)
+}
+
+const followUser = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id)
+    const followedUserId = parseInt(req.params.followId)
+
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        }
+    })
+
+    const followedUser = await prisma.user.findUnique({
+        where: {
+            id: followedUserId,
+        }
+    })
+
+    if (!user || !followedUser) {
+        return res.status(500).send({ message: 'user not found' })
+    }
+
+    console.log(user)
+    console.log(followedUser)
+
+    try {
+        const follow = await prisma.follow.create({
+            data: {
+                userId: userId,
+                followedUserId: followedUserId,
+                followedUsername: followedUser.name,
+                followedUserPfp: followedUser.pfp,
+            }
+        })
+        console.log(follow)
+        res.status(200).send({ message: 'user followed' })
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
 }
 
 const createPost = async (req: Request, res: Response) => {
@@ -128,6 +205,9 @@ const uploadPfp = async (req: Request, res: Response) => {
 export {
     getPfp,
     getPosts,
+    getUserInfo,
     uploadPfp,
     createPost,
+    getFollowedUsers,
+    followUser,
 }

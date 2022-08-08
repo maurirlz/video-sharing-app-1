@@ -37,8 +37,10 @@ model User {
 }
 
 model Follow {
-  id             Int  @id @default(autoincrement())
-  user           User @relation(fields: [userId], references: [id])
-  userId         Int
-  followedUserId Int
+  id               Int    @id @default(autoincrement())
+  user             User   @relation(fields: [userId], references: [id])
+  userId           Int
+  followedUserId   Int
+  followedUsername String
+  followedUserPfp  String
 }

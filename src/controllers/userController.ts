@@ -13,16 +13,20 @@ const prisma = new PrismaClient()
 
 const getUserInfo = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id)
-    const user = await prisma.user.findUnique({
-        where: {
-            id: userId
-        },
-        include: {
-            posts: {},
-        }
-    })
-    delete user.password
-    res.status(200).send(user)
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            include: {
+                posts: {},
+            }
+        })
+        delete user.password
+        res.status(200).send(user)
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
 }
 
 const getPosts = async (req: Request, res: Response) => {

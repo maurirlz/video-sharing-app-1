@@ -17,11 +17,9 @@ const getUserInfo = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
-            },
-            include: {
-                posts: {},
             }
         })
+        delete user.email
         delete user.password
         res.status(200).send(user)
     } catch (error) {
@@ -31,36 +29,34 @@ const getUserInfo = async (req: Request, res: Response) => {
 
 const getPosts = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id)
-    const posts = await prisma.post.findMany({
-        where: {
-            authorId: userId
-        },
-        include: {
-            author: {
-                select: {
-                    name: true,
-                    pfp: true,
-                }
+    try {
+        const posts = await prisma.post.findMany({
+            where: {
+                authorId: userId
             }
-        }
-    })
-    return res.status(200).send(posts)
+        })
+        return res.status(200).send(posts)
+    } catch (error) {
+        return res.status(500).send(error.message)
+    }
+
 }
 
 const getFollowedUsers = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id)
-    const followedUsers = await prisma.follow.findMany({
-        where: {
-            userId: userId
-        }
-    })
+    try {
 
-    // followedUsers.map(u => (
-    //     delete u.id,
-    //     delete u.userId
-    // ))
+        const followedUsers = await prisma.follow.findMany({
+            where: {
+                userId: userId
+            }
+        })
 
-    return res.status(200).send(followedUsers)
+        return res.status(200).send(followedUsers)
+
+    } catch (error) {
+        return res.status(500).send(error.message)
+    }
 }
 
 const followUser = async (req: Request, res: Response) => {
@@ -115,6 +111,20 @@ const createPost = async (req: Request, res: Response) => {
 
     if (!user) {
         return res.status(500).send({ message: 'user not found' })
+    }
+
+    if (!file) {
+        try {
+            const post = await prisma.post.create({
+                data: {
+                    authorId: userId,
+                    content: content,
+                }
+            })
+            return res.status(200).send()
+        } catch (error) {
+            return res.status(500).send({ message: 'couldnt create a new post' })
+        }
     }
 
     await sharp(`uploads/${file.filename}`)

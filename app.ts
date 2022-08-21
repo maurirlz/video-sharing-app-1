@@ -6,6 +6,7 @@ import 'dotenv/config'
 
 import { userRouter } from './src/routes/user'
 import { authRouter } from './src/routes/auth'
+import { postRouter } from './src/routes/post';
 
 
 const prisma = new PrismaClient()
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: false }))
 //link to routes
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/posts", postRouter);
 
 app.get('/api', function (req: Request, res: Response) {
     return res.json({ message: 'Hello World!' });

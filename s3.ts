@@ -28,6 +28,32 @@ const uploadFile = (filename: string) => {
     return s3.upload(uploadParams).promise()
 }
 
+
+const getFileStream = (fileKey: string) => {
+    const downloadParams = {
+        Key: fileKey,
+        Bucket: bucketName
+    }
+
+    return s3.getObject(downloadParams).createReadStream()
+}
+
+const removeFile = (fileKey: string) => {
+    const deleteParams = {
+        Key: fileKey,
+        Bucket: bucketName
+    }
+    console.log(fileKey)
+    return s3.deleteObject(deleteParams).promise()
+}
+
+export {
+    uploadFile,
+    getFileStream,
+    removeFile
+}
+
+
 // without resizing
 // const uploadFile = (file: any) => {
 //     const fileStream = fs.createReadStream(file.path)
@@ -42,16 +68,3 @@ const uploadFile = (filename: string) => {
 // }
 
 // dl from s3
-const getFileStream = (fileKey: string) => {
-    const downloadParams = {
-        Key: fileKey,
-        Bucket: bucketName
-    }
-
-    return s3.getObject(downloadParams).createReadStream()
-}
-
-export {
-    uploadFile,
-    getFileStream
-}

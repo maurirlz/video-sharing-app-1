@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client'
 import { uploadFile, getFileStream } from '/home/juanma/Documents/projects/video-sharing-app/s3'
 import * as fs from 'fs'
@@ -48,6 +48,8 @@ const followUser = async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({
         where: {
             id: userId,
+        }, include: {
+            following: true
         }
     })
 
@@ -59,6 +61,23 @@ const followUser = async (req: Request, res: Response) => {
 
     if (!user || !followedUser) {
         return res.status(500).send({ message: 'user not found' })
+    }
+
+    const isFollowing = user.following.find(e => e.followedUserId === followedUser.id)
+
+    console.log(isFollowing)
+
+    if (isFollowing) {
+        try {
+            await prisma.follow.delete({
+                where: {
+                    id: isFollowing.id
+                }
+            })
+            return res.status(200).send({ message: 'user unfollowed' })
+        } catch (error) {
+            return res.status(500).send({ message: error.message })
+        }
     }
 
     console.log(user)

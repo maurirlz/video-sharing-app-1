@@ -1,6 +1,6 @@
 import e, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client'
-import { uploadFile, getFileStream } from '/home/juanma/Documents/projects/video-sharing-app/s3'
+import { uploadFile, getFileStream, removeFile } from '/home/juanma/Documents/projects/video-sharing-app/s3'
 import * as fs from 'fs'
 import * as util from 'util'
 import * as sharp from 'sharp'
@@ -14,6 +14,22 @@ const getUserInfo = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
+            }
+        })
+        delete user.email
+        delete user.password
+        res.status(200).send(user)
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
+}
+
+const searchUser = async (req: Request, res: Response) => {
+    const username = req.params.username
+    try {
+        const user = await prisma.user.findFirstOrThrow({
+            where: {
+                name: username
             }
         })
         delete user.email
@@ -115,6 +131,16 @@ const uploadPfp = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id)
     const file = req.file
 
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        }
+    })
+
+    if (!user) {
+        return res.status(500).send({ message: 'user not found' })
+    }
+
     await sharp(`uploads/${file.filename}`)
         .resize(200, 200)
         .toFile(`uploads/${file.filename}rs`)
@@ -125,7 +151,7 @@ const uploadPfp = async (req: Request, res: Response) => {
         await unlinkFile(`uploads/${file.filename}rs`)
         await unlinkFile(file.path)
 
-        const user = await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -133,6 +159,8 @@ const uploadPfp = async (req: Request, res: Response) => {
                 pfp: result.Key,
             }
         })
+
+        await removeFile(user.pfp)
 
         res.status(200).send({ imagePath: `/ avatars / ${result.Key}` })
     } catch (error) {
@@ -146,4 +174,5 @@ export {
     uploadPfp,
     getFollowedUsers,
     followUser,
+    searchUser
 }

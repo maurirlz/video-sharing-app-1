@@ -24,7 +24,7 @@ const login = async (req: Request, res: Response) => {
     try {
         if (await verify(user.password, password)) {
             delete user.password;
-            jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '30s' }, (err: Error, token: string) => {
+            jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '300s' }, (err: Error, token: string) => {
                 res.json({
                     token,
                     user,
